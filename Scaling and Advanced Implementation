@@ -1,0 +1,64 @@
+import zapier
+import requests
+
+# Zapier API credentials
+zapier_api_key = 'your_zapier_api_key'
+zapier_api_url = '(link unavailable)'
+
+# Google Sheets API credentials
+google_sheets_api_key = 'your_google_sheets_api_key'
+google_sheets_api_url = '(link unavailable)'
+
+# Google Calendar API credentials
+google_calendar_api_key = 'your_google_calendar_api_key'
+google_calendar_api_url = '(link unavailable)'
+
+def distribute_leads_among_sales_reps(lead):
+    # Use Zapier's "Random" function to assign a sales rep to each new lead
+    random_sales_rep = zapier.random_select(['Sales Rep 1', 'Sales Rep 2', 'Sales Rep 3'])
+    lead['assigned_sales_rep'] = random_sales_rep
+    return lead
+
+def extract_keywords_from_comments(lead):
+    # Use Zapier's "Formatter" step to extract keywords from the "Comments" field
+    keywords = zapier.extract_keywords(lead['comments'], ['keyword1', 'keyword2', 'keyword3'])
+    lead['keywords'] = keywords
+    return lead
+
+def schedule_lead_follow_up(lead):
+    # Use Zapier's "Google Calendar" integration to schedule reminders for the sales team
+    event_title = f'Follow up with {lead["name"]}'
+    event_description = f'Follow up with {lead["name"]} regarding their interest in our product.'
+    event_start_time = zapier.add_days(lead['created_at'], 3)
+    event_end_time = zapier.add_hours(event_start_time, 1)
+    google_calendar_event = {
+        'title': event_title,
+        'description': event_description,
+        'start': event_start_time,
+        'end': event_end_time
+    }
+    requests.post(google_calendar_api_url + '/events', json=google_calendar_event, headers={'Authorization': f'Bearer {google_calendar_api_key}'})
+
+def main():
+    # Test lead data
+    lead = {
+        'name': 'John Doe',
+        'email': 'johndoe@example.com',
+        'phone_number': '123-456-7890',
+        'comments': 'I am interested in your product.',
+        'created_at': '2024-11-23T14:30:00Z'
+    }
+
+    # Distribute leads among sales reps
+    lead = distribute_leads_among_sales_reps(lead)
+
+    # Extract keywords from comments
+    lead = extract_keywords_from_comments(lead)
+
+    # Schedule lead follow-up
+    schedule_lead_follow_up(lead)
+
+    print(lead)
+
+if __name__ == '__main__':
+    main()
